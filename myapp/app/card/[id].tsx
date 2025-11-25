@@ -1,76 +1,12 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import React, { useState } from 'react';
+import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-const MacerataCrestSmall = () => (
-    <Svg width="32" height="32" viewBox="0 0 100 100">
-        <Path
-            d="M50 10 L20 20 L20 60 Q20 80 50 95 Q80 80 80 60 L80 20 Z"
-            fill="#DC2626"
-            stroke="#7C2D12"
-            strokeWidth="2"
-        />
-        <Rect x="20" y="20" width="60" height="1.5" fill="#7C2D12" />
-        <Rect x="49.25" y="20" width="1.5" height="75" fill="#7C2D12" />
-        <Rect x="20" y="57.5" width="60" height="1.5" fill="#7C2D12" />
-        <Path
-            d="M35 25 L35 35 L30 35 L30 40 L35 40 L35 50 L40 50 L40 40 L45 40 L45 35 L40 35 L40 25 Z"
-            fill="#F8FAFC"
-        />
-        <Circle cx="65" cy="37.5" r="10" fill="#F8FAFC" stroke="#DC2626" strokeWidth="3" />
-        <Rect x="58" y="36.25" width="14" height="2.5" fill="#DC2626" />
-        <Circle cx="35" cy="70" r="10" fill="#F8FAFC" stroke="#DC2626" strokeWidth="3" />
-        <Rect x="28" y="68.75" width="14" height="2.5" fill="#DC2626" />
-        <Path
-            d="M65 60 L65 70 L60 70 L60 75 L65 75 L65 85 L70 85 L70 75 L75 75 L75 70 L70 70 L70 60 Z"
-            fill="#F8FAFC"
-        />
-    </Svg>
-);
 
-// Componente per la barra di accessibilità
-const AccessibilityBar = ({ rate, label }: { rate: number; label: string }) => {
-    const percentage = Math.round(rate * 100);
-
-    // Determina il colore in base alla percentuale
-    const getColor = () => {
-        if (percentage >= 75) return '#22c55e'; // Verde
-        if (percentage >= 50) return '#eab308'; // Giallo
-        if (percentage >= 25) return '#f97316'; // Arancione
-        return '#ef4444'; // Rosso
-    };
-
-    const color = getColor();
-
-    return (
-        <View style={styles.accessibilityBarContainer}>
-            <View style={styles.accessibilityBarHeader}>
-                <Text style={styles.accessibilityBarLabel}>{label}</Text>
-                <Text style={[styles.accessibilityBarPercentage, { color }]}>
-                    {percentage}%
-                </Text>
-            </View>
-            <View style={styles.accessibilityBarBackground}>
-                <View
-                    style={[
-                        styles.accessibilityBarFill,
-                        { width: `${percentage}%`, backgroundColor: color }
-                    ]}
-                />
-            </View>
-        </View>
-    );
-};
 
 const Card = () => {
     const { id } = useLocalSearchParams();
     const router = useRouter();
-    const [accessibilityRates, setAccessibilityRates] = useState<{
-        singular_rate: number;
-        accompany_rate: number;
-        reason: string
-    } | null>(null);
     const [loading, setLoading] = useState(true);
     const [modalVisible, setModalVisible] = useState(false);
     const [rating, setRating] = useState(0);
@@ -95,46 +31,8 @@ const Card = () => {
         }
     };
 
-    const place = places[id as string];
+    const place: any = places[id as string];
 
-    // Funzione per recuperare i tassi di accessibilità
-    const fetchAccessibilityRates = async () => {
-        if (!place) return;
-
-        try {
-            setLoading(true);
-            const response = await fetch('http://10.10.0.119:8000/calculate_accessibility_rate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    latitude: place.latitude,
-                    longitude: place.longitude,
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error('Errore nella richiesta');
-            }
-
-            const data = await response.json();
-            setAccessibilityRates(data);
-        } catch (error) {
-            console.error('Errore nel recupero dei tassi di accessibilità:', error);
-            // Imposta valori di default in caso di errore
-            setAccessibilityRates({
-                singular_rate: 0,
-                accompany_rate: 0,
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchAccessibilityRates();
-    }, [id]);
 
     const openRatingModal = () => {
         setModalVisible(true);
@@ -173,7 +71,6 @@ const Card = () => {
                     <Text style={styles.backIcon}>←</Text>
                 </TouchableOpacity>
                 <View style={styles.logoRow}>
-                    <MacerataCrestSmall />
                     <Text style={styles.appName}>Dettagli</Text>
                 </View>
                 <View style={styles.placeholder} />
@@ -203,40 +100,7 @@ const Card = () => {
                 {/* Accessibility Rates Section */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Tasso di Accessibilità</Text>
-                    {loading ? (
-                        <View style={styles.loadingContainer}>
-                            <ActivityIndicator size="large" color="#DC2626" />
-                            <Text style={styles.loadingText}>Caricamento dati...</Text>
-                        </View>
-                    ) : accessibilityRates ? (
-                        <View style={styles.accessibilityRatesContainer}>
-                            <AccessibilityBar
-                                rate={accessibilityRates.singular_rate}
-                                label="Accessibilità Individuale"
-                            />
-                            <AccessibilityBar
-                                rate={accessibilityRates.accompany_rate}
-                                label="Accessibilità con Accompagnatore"
-                            />
-                            <Text>Caratteristiche:
 
-                            </Text>
-                            <Text style={styles.ratesInfoText}>
-                                {accessibilityRates.reason}
-                            </Text>
-
-                            <View style={styles.ratesInfo}>
-                                <Text style={styles.ratesInfoText}>
-                                    💡 Questi tassi sono calcolati in base alle caratteristiche
-                                    del luogo e della zona circostante
-                                </Text>
-                            </View>
-                        </View>
-                    ) : (
-                        <Text style={styles.errorText}>
-                            Impossibile caricare i dati di accessibilità
-                        </Text>
-                    )}
                 </View>
 
                 {/* Features */}
@@ -292,7 +156,7 @@ const Card = () => {
                         style={[styles.actionButton, styles.actionButtonPrimary]}
                         onPress={openRatingModal}
                     >
-                        <Text style={styles.actionButtonTextPrimary}>🧭 Indicazioni</Text>
+                        <Text style={styles.actionButtonTextPrimary}>Recensione</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>

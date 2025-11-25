@@ -19,7 +19,6 @@ export default function RootLayout() {
                     headerShown: false
                 }} />
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
                 <Stack.Screen name="card/[id]" options={{ presentation: 'modal', headerShown: false }} />
                 <Stack.Screen name="profile" options={{ headerShown: false }} />
             </Stack>
